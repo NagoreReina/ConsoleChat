@@ -6,7 +6,7 @@ namespace ConsoleChat
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Comienzo");
+            Console.WriteLine("Program Start");
         }
     }
 }

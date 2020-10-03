@@ -20,41 +20,27 @@ namespace Core.Controllers
         }
         public bool validatePort(string port)
         {
-            if (string.IsNullOrEmpty(port))
+            int result;
+            if (string.IsNullOrEmpty(port) || port.Length > 5 || !int.TryParse(port, out result))
             {
                 return false;
             }
             else
             {
-                int result;
-                if (int.TryParse(port, out result))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return false;
             }
         }
         public bool validateUsername(string name)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name) || name.Length > 8)
             {
                 return false;
             }
             else
             {
-                if (name.Length > 8)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
+                return true;
             }
-            
+
         }
     }
 }

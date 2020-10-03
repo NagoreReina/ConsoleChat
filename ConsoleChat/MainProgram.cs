@@ -2,6 +2,7 @@
 using System.Linq;
 using Core.Controllers;
 using Core.Models;
+using Fleck;
 
 namespace ConsoleChat
 {
@@ -9,11 +10,15 @@ namespace ConsoleChat
     {
         public static UserController _userController = new UserController();
         public static MainProgram _main = new MainProgram();
+
+
         static void Main(string[] args)
         {
-            _main.dataEntry();
+            User conectedUser = new User();
+            conectedUser = _main.dataEntry();
+            _main.conectToPort(conectedUser.Port);
         }
-        public void dataEntry()
+        public User dataEntry()
         {
             string name = string.Empty;
             string port = string.Empty;
@@ -43,6 +48,19 @@ namespace ConsoleChat
 
             User conectedUser = _userController.createUser(name, port);
             Console.WriteLine("Conected User: " + conectedUser.Name + " port: " + conectedUser.Port);
+            return conectedUser;
+        }
+
+        public void conectToPort( string port)
+        {
+            var server = new WebSocketServer("ws://0.0.0.0:" + port);
+            server.Start(socket =>
+            {
+                socket.OnOpen = () => Console.WriteLine("Open");
+                socket.OnClose = () => Console.WriteLine("Close");
+                socket.OnMessage = message => socket.Send(message);
+                
+            });
         }
     }
     

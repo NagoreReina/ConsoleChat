@@ -21,12 +21,16 @@ namespace Core.Controllers
         public bool validatePort(string port)
         {
             int result;
-            if (string.IsNullOrEmpty(port) || port.Length > 5 || !int.TryParse(port, out result))
+            if (string.IsNullOrEmpty(port) || port.Length > 5)
             {
                 return false;
             }
             else
             {
+                if(int.TryParse(port, out result))
+                {
+                    return true;
+                }
                 return false;
             }
         }

@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="log4net" Version="2.0.11" />
+    <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Fleck-master\src\Fleck\Fleck.csproj" />
     <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>

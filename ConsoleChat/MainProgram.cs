@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using WebSocketSharp;
 using Core.Controllers;
 using Core.Models;
 using Fleck;
+using log4net;
 
 namespace ConsoleChat
 {
@@ -10,13 +14,41 @@ namespace ConsoleChat
     {
         public static UserController _userController = new UserController();
         public static MainProgram _main = new MainProgram();
-
+        public static List<IWebSocketConnection> allSockets = new List<IWebSocketConnection>();
+        private static WebSocketServer server;
 
         static void Main(string[] args)
         {
-            User conectedUser = new User();
-            conectedUser = _main.dataEntry();
-            _main.conectToPort(conectedUser.Port);
+
+            User conectedUser = _main.dataEntry();
+            try
+            {
+                server = _main.StartServer(conectedUser.Port);
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            using (var ws = new WebSocket("ws://127.0.0.1:" + conectedUser.Port))
+            {
+                ws.OnOpen += (sender, e) => ws.Send("Connected user: " + conectedUser.Name);
+                ws.OnMessage += (sender, e) =>
+                    { Console.WriteLine(e.Data); };
+                ws.OnClose += (sender, e) => ws.Send("Disconnected user: " + conectedUser.Name);
+                ws.Connect();
+                while (true)
+                {
+                    var msg = Console.ReadLine();
+                    if (msg == "exit")
+                    {
+                        ws.Send("Disconnected user: " + conectedUser.Name);
+                        break;
+                    }                                       
+                    ws.Send(conectedUser.Name + ": " + msg);
+                }
+            }
         }
         public User dataEntry()
         {
@@ -47,21 +79,36 @@ namespace ConsoleChat
             }
 
             User conectedUser = _userController.createUser(name, port);
-            Console.WriteLine("Conected User: " + conectedUser.Name + " port: " + conectedUser.Port);
+
             return conectedUser;
         }
 
-        public void conectToPort( string port)
+        public WebSocketServer StartServer(string port)
         {
-            var server = new WebSocketServer("ws://0.0.0.0:" + port);
+            Console.WriteLine("processing...");
+            var server = new WebSocketServer("ws://127.0.0.1:" + port);
+
             server.Start(socket =>
             {
-                socket.OnOpen = () => Console.WriteLine("Open");
-                socket.OnClose = () => Console.WriteLine("Close");
-                socket.OnMessage = message => socket.Send(message);
-                
+                socket.OnOpen = () =>
+                {
+                    Console.WriteLine("New user!");
+                    allSockets.Add(socket);
+                };
+                socket.OnClose = () =>
+                {
+                    Console.WriteLine("user disconnected");
+                    allSockets.Remove(socket);
+                };
+                socket.OnMessage = message =>
+                {
+                    //Console.WriteLine("debug: " + message);
+                    allSockets.ToList().ForEach(s => s.Send(message));
+                };
             });
+            return server;
         }
+
     }
-    
+
 }
